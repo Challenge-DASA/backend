@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from domain.exceptions import ProcedureAlreadyDeletedError
-from domain.value_objects.ids import ProcedureId
+from domain.value_objects.ids import ProcedureId, LaboratoryId
 
 
 @dataclass
@@ -11,8 +11,8 @@ class Procedure:
     procedure_id: ProcedureId
     name: str
     description: str
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
     is_deleted: bool = False
     deleted_at: Optional[datetime] = None
 
@@ -30,3 +30,9 @@ class Procedure:
 
     def is_active(self) -> bool:
         return not self.is_deleted
+
+@dataclass
+class LaboratoryProcedure:
+    laboratory_id: LaboratoryId
+    procedure_id: ProcedureId
+    created_at: datetime

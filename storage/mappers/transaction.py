@@ -43,7 +43,6 @@ class TransactionItemMapper:
     def to_domain(model: TransactionItemModel) -> TransactionItem:
         return TransactionItem(
             material_id=MaterialId(uuid.UUID(bytes=model.material_id)),
-            dispenser_id=DispenserId(uuid.UUID(bytes=model.dispenser_id)),
             quantity=model.quantity
         )
 
@@ -52,6 +51,5 @@ class TransactionItemMapper:
         return TransactionItemModel(
             transaction_id=transaction_id.value.bytes,
             material_id=entity.material_id.value.bytes,
-            dispenser_id=entity.dispenser_id.value.bytes,
             quantity=entity.quantity
         )

@@ -8,7 +8,7 @@ from domain.value_objects.ids import MaterialId
 
 @dataclass
 class Material:
-    material_id: MaterialId
+    id: MaterialId
     name: str
     description: str
     created_at: datetime.datetime

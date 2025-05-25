@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from domain.exceptions import InvalidProcedureCountError
-from domain.value_objects.ids import ProcedureId, MaterialId
+from domain.value_objects.ids import MaterialId, ProcedureId
 
 
 @dataclass

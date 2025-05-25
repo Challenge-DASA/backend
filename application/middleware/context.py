@@ -30,14 +30,16 @@ class ContextMiddleware:
 
         g.context = context
 
-    async def after_request(self, response):
+    @staticmethod
+    async def after_request(response):
         if hasattr(g, 'context') and config.ENABLE_REQUEST_LOGGING:
             context = g.context
             print(f"Request {context.request_id} completed at {context.request_datetime}")
 
         return response
 
-    async def _extract_user_id(self) -> UserId:
+    @staticmethod
+    async def _extract_user_id() -> UserId:
         auth_header = request.headers.get('Authorization')
 
         if auth_header and auth_header.startswith('Bearer '):
