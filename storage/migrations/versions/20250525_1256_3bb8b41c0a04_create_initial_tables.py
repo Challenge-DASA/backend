@@ -138,10 +138,10 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(['procedure_id'], ['procedures.procedure_id'])
     )
 
+    # Tabela transaction_items SEM dispenser_id
     op.create_table('transaction_items',
         sa.Column('transaction_id', oracle.RAW(16), nullable=False),
         sa.Column('material_id', oracle.RAW(16), nullable=False),
-        sa.Column('dispenser_id', oracle.RAW(16), nullable=False),
         sa.Column('quantity', sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint('transaction_id', 'material_id'),
         sa.ForeignKeyConstraint(['transaction_id'], ['transactions.transaction_id']),

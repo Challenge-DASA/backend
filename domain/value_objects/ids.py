@@ -122,27 +122,3 @@ class UserId:
                 field="user_id",
                 invalid_value=id_str
             ) from e
-
-
-@dataclass(frozen=True)
-class DispenserId:
-    value: UUID
-
-    @classmethod
-    def from_string(cls, id_str: str) -> 'DispenserId':
-        if not id_str or not id_str.strip():
-            raise InvalidResourceIdError(
-                "Dispenser ID string cannot be empty or null",
-                field="dispenser_id",
-                invalid_value=id_str
-            )
-
-        try:
-            uuid_value = UUID(id_str.strip())
-            return cls(value=uuid_value)
-        except ValueError as e:
-            raise InvalidResourceIdError(
-                "Invalid dispenser ID format",
-                field="dispenser_id",
-                invalid_value=id_str
-            ) from e

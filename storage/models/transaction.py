@@ -29,7 +29,6 @@ class TransactionItemModel(Base):
 
     transaction_id = Column(RAW(16), ForeignKey('transactions.transaction_id'), primary_key=True)
     material_id = Column(RAW(16), primary_key=True)
-    dispenser_id = Column(RAW(16), nullable=False)
     quantity = Column(Integer, nullable=False)
 
     transaction = relationship("TransactionModel", back_populates="items")

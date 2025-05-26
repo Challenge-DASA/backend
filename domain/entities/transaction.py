@@ -7,7 +7,7 @@ from domain.entities.material import MaterialId
 from domain.entities.transaction_item import TransactionItem
 from domain.exceptions import InvalidTransactionStateError
 from domain.value_objects.enums import TransactionType, TransactionStatus
-from domain.value_objects.ids import TransactionId, LaboratoryId, UserId, ProcedureId, DispenserId
+from domain.value_objects.ids import TransactionId, LaboratoryId, UserId, ProcedureId
 
 
 @dataclass
