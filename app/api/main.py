@@ -8,12 +8,22 @@ from app.api.error_handlers import register_error_handlers
 from app.api.routes import register_blueprints
 from application.middleware.context import ContextMiddleware
 from infrastructure.mqtt import initialize_mqtt, shutdown_mqtt
+from infrastructure.mqtt.integration import setup_mqtt_integration
+from application.services.device_service import DeviceService
+from application.services.temperature_service import TemperatureService
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 config = get_config()
 app = Quart(__name__)
 app.config.from_object(config)
+
+device_service = DeviceService()
+temperature_service = TemperatureService()
+
+app.device_service = device_service
+app.temperature_service = temperature_service
 
 QuartSchema(
     app,
@@ -39,8 +49,12 @@ async def startup():
         mqtt_client_instance = initialize_mqtt()
         logger.info(f"MQTT inicializado. Status: {mqtt_client_instance.get_status().value}")
 
+        await asyncio.sleep(2)
+
         if mqtt_client_instance.is_connected():
             logger.info("MQTT conectado com sucesso!")
+            setup_mqtt_integration(device_service, temperature_service)
+            logger.info("Integração MQTT configurada")
         else:
             logger.error("MQTT não conseguiu conectar. Aplicação não pode continuar.")
             raise RuntimeError("MQTT connection failed")

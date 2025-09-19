@@ -216,14 +216,37 @@ class MQTTClient:
 
             logger.debug(f"Mensagem recebida em {topic}: {payload[:100]}...")
 
-            handler = self._message_handlers.get(topic)
-            if handler:
-                handler(topic, payload, message.qos, message.retain)
-            else:
+            handler_found = False
+
+            for handler_topic, handler in self._message_handlers.items():
+                if self._topic_matches(handler_topic, topic):
+                    handler(topic, payload, message.qos, message.retain)
+                    handler_found = True
+                    break
+
+            if not handler_found:
                 self._default_message_handler(topic, payload, message.qos, message.retain)
 
         except Exception as e:
             logger.error(f"Erro ao processar mensagem: {e}")
+
+    def _topic_matches(self, pattern: str, topic: str) -> bool:
+        if pattern == topic:
+            return True
+
+        pattern_parts = pattern.split('/')
+        topic_parts = topic.split('/')
+
+        if len(pattern_parts) != len(topic_parts):
+            return False
+
+        for p, t in zip(pattern_parts, topic_parts):
+            if p != '+' and p != '#' and p != t:
+                return False
+            if p == '#':
+                return True
+
+        return True
 
     def _on_subscribe(self, client, userdata, mid, granted_qos):
         logger.debug(f"Subscrição confirmada. QoS concedido: {granted_qos}")
