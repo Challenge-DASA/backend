@@ -3,12 +3,12 @@ from contextlib import asynccontextmanager
 from application.usecases.list_laboratory_balance import ListLaboratoryBalanceUseCase
 from application.usecases.list_procedure_materials import ListProcedureMaterialsUseCase
 from application.usecases.withdraw import WithdrawTransactionUseCase
-from storage.oracle.database import async_session_factory
-from storage.repositories.material_balance_repository import MaterialBalanceRepositoryImpl
-from storage.repositories.material_repository import MaterialRepositoryImpl
-from storage.repositories.procedure_repository import ProcedureRepositoryImpl
+from infrastructure.storage.oracle.database import async_session_factory
+from infrastructure.storage.repositories.material_balance_repository import MaterialBalanceRepositoryImpl
+from infrastructure.storage.repositories.material_repository import MaterialRepositoryImpl
+from infrastructure.storage.repositories.procedure_repository import ProcedureRepositoryImpl
 from application.usecases.list_procedures import ListProceduresUseCase
-from storage.repositories.transaction_repository import TransactionRepositoryImpl
+from infrastructure.storage.repositories.transaction_repository import TransactionRepositoryImpl
 
 
 class Container:
