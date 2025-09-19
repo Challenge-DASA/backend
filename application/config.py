@@ -19,11 +19,21 @@ class Config:
     BUILD_DATE = os.getenv('BUILD_DATE', datetime.utcnow().isoformat())
     GIT_COMMIT = os.getenv('GIT_COMMIT', 'unknown')
 
+    # Oracle Database Configuration
     ORACLE_HOST = os.getenv('ORACLE_HOST', 'localhost')
     ORACLE_PORT = int(os.getenv('ORACLE_PORT', '1521'))
     ORACLE_SERVICE_NAME = os.getenv('ORACLE_SERVICE_NAME', 'FREEPDB1')
     ORACLE_USERNAME = os.getenv('ORACLE_USERNAME', 'smartlab')
-    ORACLE_PASSWORD = os.getenv('ORACLE_PASSWORD', 'password')
+    ORACLE_PASSWORD = os.getenv('ORACLE_PASSWORD', 'smartlab123')
+
+    # MQTT Configuration
+    MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST', 'localhost')
+    MQTT_BROKER_PORT = int(os.getenv('MQTT_BROKER_PORT', '1883'))
+    MQTT_USERNAME = os.getenv('MQTT_USERNAME', '')
+    MQTT_PASSWORD = os.getenv('MQTT_PASSWORD', '')
+    MQTT_CLIENT_ID = os.getenv('MQTT_CLIENT_ID', f'smartlab-{uuid.uuid4().hex[:8]}')
+    MQTT_QOS = int(os.getenv('MQTT_QOS', '1'))
+    MQTT_KEEPALIVE = int(os.getenv('MQTT_KEEPALIVE', '60'))
 
     def DATABASE_URL(self) -> str:
         return f"oracle+oracledb://{self.ORACLE_USERNAME}:{self.ORACLE_PASSWORD}@{self.ORACLE_HOST}:{self.ORACLE_PORT}/?service_name={self.ORACLE_SERVICE_NAME}"
@@ -36,6 +46,8 @@ class DevelopmentConfig(Config):
 
     ORACLE_HOST = os.getenv('ORACLE_HOST', 'localhost')
     ORACLE_SERVICE_NAME = os.getenv('ORACLE_SERVICE_NAME', 'FREEPDB1')
+    ORACLE_PASSWORD = os.getenv('ORACLE_PASSWORD', 'smartlab123')
+    MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST', 'localhost')
 
 
 class ProductionConfig(Config):
@@ -52,6 +64,10 @@ class ProductionConfig(Config):
     ORACLE_USERNAME = os.getenv('ORACLE_USERNAME')
     ORACLE_PASSWORD = os.getenv('ORACLE_PASSWORD')
     ORACLE_SERVICE_NAME = os.getenv('ORACLE_SERVICE_NAME', 'FREEPDB1')
+
+    MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST')
+    MQTT_USERNAME = os.getenv('MQTT_USERNAME')
+    MQTT_PASSWORD = os.getenv('MQTT_PASSWORD')
 
 
 config_by_name = {
@@ -77,5 +93,8 @@ def get_config():
 
         if not config_class.GIT_COMMIT or config_class.GIT_COMMIT == 'unknown':
             raise ValueError("GIT_COMMIT should be set in production")
+
+        if not config_class.MQTT_BROKER_HOST:
+            raise ValueError("MQTT_BROKER_HOST must be set in production")
 
     return config_class
