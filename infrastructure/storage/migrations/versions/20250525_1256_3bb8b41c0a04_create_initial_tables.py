@@ -101,6 +101,7 @@ def upgrade() -> None:
     op.create_table('laboratory_procedures',
         sa.Column('laboratory_id', oracle.RAW(16), nullable=False),
         sa.Column('procedure_id', oracle.RAW(16), nullable=False),
+        sa.Column('slot', sa.Integer(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint('laboratory_id', 'procedure_id'),
         sa.ForeignKeyConstraint(['procedure_id'], ['procedures.procedure_id'])
@@ -138,7 +139,6 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(['procedure_id'], ['procedures.procedure_id'])
     )
 
-    # Tabela transaction_items SEM dispenser_id
     op.create_table('transaction_items',
         sa.Column('transaction_id', oracle.RAW(16), nullable=False),
         sa.Column('material_id', oracle.RAW(16), nullable=False),
@@ -215,17 +215,33 @@ def upgrade() -> None:
             VALUES (HEXTORAW('{PROCEDURE_IDS[name].hex}'), '{name}', '{description}', TIMESTAMP '{now}', TIMESTAMP '{now}')
         """)
 
+    # Definir slots para cada procedimento no laboratório principal
+    slots = {
+        'Hemograma Completo': 1,
+        'Urinálise Completa': 2,
+        'Cultura de Escarro': 3,
+        'Biópsia por Punção': 4,
+        'Parasitológico de Fezes': 5
+    }
+
     for proc_name in PROCEDURE_IDS.keys():
         op.execute(f"""
-            INSERT INTO laboratory_procedures (laboratory_id, procedure_id, created_at)
-            VALUES (HEXTORAW('{DEFAULT_LAB_ID.hex}'), HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), TIMESTAMP '{now}')
+            INSERT INTO laboratory_procedures (laboratory_id, procedure_id, slot, created_at)
+            VALUES (HEXTORAW('{DEFAULT_LAB_ID.hex}'), HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), {slots[proc_name]}, TIMESTAMP '{now}')
         """)
 
+    # Definir slots para o laboratório secundário
     secondary_procedures = ['Hemograma Completo', 'Urinálise Completa', 'Parasitológico de Fezes']
+    secondary_slots = {
+        'Hemograma Completo': 1,
+        'Urinálise Completa': 2,
+        'Parasitológico de Fezes': 3
+    }
+
     for proc_name in secondary_procedures:
         op.execute(f"""
-            INSERT INTO laboratory_procedures (laboratory_id, procedure_id, created_at)
-            VALUES (HEXTORAW('{SECONDARY_LAB_ID.hex}'), HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), TIMESTAMP '{now}')
+            INSERT INTO laboratory_procedures (laboratory_id, procedure_id, slot, created_at)
+            VALUES (HEXTORAW('{SECONDARY_LAB_ID.hex}'), HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), {secondary_slots[proc_name]}, TIMESTAMP '{now}')
         """)
 
     procedure_usages = [
