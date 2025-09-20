@@ -22,57 +22,34 @@ DEFAULT_LAB_ID = uuid.UUID('12345678-1234-5678-1234-123456789012')
 SECONDARY_LAB_ID = uuid.UUID('87654321-8765-4321-8765-876543218765')
 
 MATERIAL_IDS = {
-    # Materiais básicos de coleta
+    # Kit 1 - Punção venosa simples
+    'Luvas descartáveis': uuid.uuid4(),
+    'Gaze estéril': uuid.uuid4(),
     'Seringa 5ml': uuid.uuid4(),
-    'Seringa 10ml': uuid.uuid4(),
-    'Agulha 21G': uuid.uuid4(),
-    'Agulha 23G': uuid.uuid4(),
-    'Tubo EDTA': uuid.uuid4(),
-    'Tubo Citrato': uuid.uuid4(),
-    'Álcool Swab': uuid.uuid4(),
-    'Curativo': uuid.uuid4(),
+    'Agulha 25x7': uuid.uuid4(),
+    'Agulha 25x8': uuid.uuid4(),
+    'Álcool 70% sachê': uuid.uuid4(),
 
-    # Materiais para urinálise
-    'Frasco Urina Estéril': uuid.uuid4(),
-    'Fita Reagente Urina': uuid.uuid4(),
-    'Pipeta Pasteur': uuid.uuid4(),
-    'Lâmina Microscopia': uuid.uuid4(),
-    'Lamínula': uuid.uuid4(),
+    # Kit 2 - Punção venosa com scalp
+    'Scalp nº 21': uuid.uuid4(),
+    'Scalp nº 23': uuid.uuid4(),
 
-    # Materiais para cultura microbiológica
-    'Placa Ágar Sangue': uuid.uuid4(),
-    'Placa Ágar MacConkey': uuid.uuid4(),
-    'Placa Ágar Chocolate': uuid.uuid4(),
-    'Swab Estéril': uuid.uuid4(),
-    'Meio BHI': uuid.uuid4(),
-    'Disco Antibiótico': uuid.uuid4(),
-    'Alça Bacteriológica': uuid.uuid4(),
-    'Tubo Ensaio Estéril': uuid.uuid4(),
+    # Kit 3 - Cateter venoso periférico
+    'Cateter venoso periférico nº 20': uuid.uuid4(),
+    'Cateter venoso periférico nº 22': uuid.uuid4(),
+    'Seringa com solução salina': uuid.uuid4(),
+    'Curativo transparente': uuid.uuid4(),
+    'Micropore': uuid.uuid4(),
 
-    # Materiais para biópsia
-    'Agulha Biópsia 14G': uuid.uuid4(),
-    'Pistola Biópsia': uuid.uuid4(),
-    'Campo Cirúrgico': uuid.uuid4(),
-    'Anestésico Local': uuid.uuid4(),
-    'Formol 10%': uuid.uuid4(),
-    'Frasco Histologia': uuid.uuid4(),
-    'Compressa Cirúrgica': uuid.uuid4(),
-    'Sutura': uuid.uuid4(),
-
-    # Materiais para parasitologia
-    'Frasco Fezes': uuid.uuid4(),
-    'Solução Lugol': uuid.uuid4(),
-    'Solução Fisiológica': uuid.uuid4(),
-    'Centrífuga Tubo': uuid.uuid4(),
-    'Kit Parasitológico': uuid.uuid4(),
+    # Kit 4 - Curativo simples
+    'Soro fisiológico pequeno': uuid.uuid4(),
 }
 
 PROCEDURE_IDS = {
-    'Hemograma Completo': uuid.uuid4(),
-    'Urinálise Completa': uuid.uuid4(),
-    'Cultura de Escarro': uuid.uuid4(),
-    'Biópsia por Punção': uuid.uuid4(),
-    'Parasitológico de Fezes': uuid.uuid4(),
+    'Punção venosa simples': uuid.uuid4(),
+    'Punção venosa com scalp': uuid.uuid4(),
+    'Cateter venoso periférico': uuid.uuid4(),
+    'Curativo simples': uuid.uuid4(),
 }
 
 def upgrade() -> None:
@@ -150,49 +127,29 @@ def upgrade() -> None:
 
     now = datetime.datetime.now(datetime.UTC)
 
+    # Inserir materiais
     materials_data = [
-        # Materiais básicos
-        ('Seringa 5ml', 'Seringa descartável de 5ml com agulha'),
-        ('Seringa 10ml', 'Seringa descartável de 10ml com agulha'),
-        ('Agulha 21G', 'Agulha descartável calibre 21G'),
-        ('Agulha 23G', 'Agulha descartável calibre 23G'),
-        ('Tubo EDTA', 'Tubo de coleta com anticoagulante EDTA'),
-        ('Tubo Citrato', 'Tubo de coleta com citrato de sódio'),
-        ('Álcool Swab', 'Algodão embebido em álcool 70%'),
-        ('Curativo', 'Curativo adesivo para punção'),
+        # Materiais comuns a vários kits
+        ('Luvas descartáveis', 'Luvas descartáveis não estéreis para procedimentos'),
+        ('Gaze estéril', 'Compressas de gaze estéril para curativos'),
+        ('Seringa 5ml', 'Seringa descartável de 5ml com bico luer'),
+        ('Agulha 25x7', 'Agulha descartável 25G x 7mm para aplicação subcutânea'),
+        ('Agulha 25x8', 'Agulha descartável 25G x 8mm para aplicação subcutânea'),
+        ('Álcool 70% sachê', 'Sachê ou pad com álcool 70% para antissepsia'),
 
-        # Materiais para urinálise
-        ('Frasco Urina Estéril', 'Frasco estéril para coleta de urina'),
-        ('Fita Reagente Urina', 'Fita reagente para análise química da urina'),
-        ('Pipeta Pasteur', 'Pipeta descartável para transferência de líquidos'),
-        ('Lâmina Microscopia', 'Lâmina de vidro para microscopia'),
-        ('Lamínula', 'Lamínula de vidro para cobertura'),
+        # Kit 2 específico
+        ('Scalp nº 21', 'Scalp venoso calibre 21G para acesso venoso'),
+        ('Scalp nº 23', 'Scalp venoso calibre 23G para acesso venoso'),
 
-        # Materiais para cultura microbiológica
-        ('Placa Ágar Sangue', 'Placa de Petri com ágar sangue'),
-        ('Placa Ágar MacConkey', 'Placa de Petri com ágar MacConkey'),
-        ('Placa Ágar Chocolate', 'Placa de Petri com ágar chocolate'),
-        ('Swab Estéril', 'Swab estéril para coleta de material'),
-        ('Meio BHI', 'Meio de cultura Brain Heart Infusion'),
-        ('Disco Antibiótico', 'Disco impregnado com antibiótico'),
-        ('Alça Bacteriológica', 'Alça de platina para semeadura'),
-        ('Tubo Ensaio Estéril', 'Tubo de ensaio estéril para cultura'),
+        # Kit 3 específico
+        ('Cateter venoso periférico nº 20', 'Cateter venoso periférico calibre 20G'),
+        ('Cateter venoso periférico nº 22', 'Cateter venoso periférico calibre 22G'),
+        ('Seringa com solução salina', 'Seringa pré-carregada com soro fisiológico para flush'),
+        ('Curativo transparente', 'Curativo transparente adesivo para fixação de cateter'),
+        ('Micropore', 'Fita micropore para fixação de curativos'),
 
-        # Materiais para biópsia
-        ('Agulha Biópsia 14G', 'Agulha específica para biópsia calibre 14G'),
-        ('Pistola Biópsia', 'Dispositivo automático para biópsia'),
-        ('Campo Cirúrgico', 'Campo estéril descartável'),
-        ('Anestésico Local', 'Anestésico local para infiltração'),
-        ('Formol 10%', 'Solução de formol para fixação'),
-        ('Frasco Histologia', 'Frasco para conservação de tecidos'),
-        ('Compressa Cirúrgica', 'Compressa estéril para hemostasia'),
-        ('Sutura', 'Fio de sutura para fechamento'),
-
-        ('Frasco Fezes', 'Frasco para coleta de material fecal'),
-        ('Solução Lugol', 'Solução de lugol para coloração'),
-        ('Solução Fisiológica', 'Solução fisiológica estéril'),
-        ('Centrífuga Tubo', 'Tubo para centrífuga'),
-        ('Kit Parasitológico', 'Kit completo para pesquisa de parasitas'),
+        # Kit 4 específico
+        ('Soro fisiológico pequeno', 'Frasco pequeno ou ampola de soro fisiológico para limpeza'),
     ]
 
     for name, description in materials_data:
@@ -201,12 +158,12 @@ def upgrade() -> None:
             VALUES (HEXTORAW('{MATERIAL_IDS[name].hex}'), '{name}', '{description}', TIMESTAMP '{now}', TIMESTAMP '{now}')
         """)
 
+    # Inserir procedures (kits)
     procedures_data = [
-        ('Hemograma Completo', 'Exame de sangue para avaliar células sanguíneas'),
-        ('Urinálise Completa', 'Análise física, química e microscópica da urina'),
-        ('Cultura de Escarro', 'Cultura microbiológica para identificação de patógenos respiratórios'),
-        ('Biópsia por Punção', 'Procedimento para coleta de tecido por punção guiada'),
-        ('Parasitológico de Fezes', 'Pesquisa de parasitas intestinais em material fecal'),
+        ('Punção venosa simples', 'Kit para coleta de sangue e aplicação de medicação via punção venosa simples'),
+        ('Punção venosa com scalp', 'Kit para medicação EV rápida ou coleta em pacientes com acesso difícil usando scalp'),
+        ('Cateter venoso periférico', 'Kit para instalação de acesso venoso prolongado com cateter periférico'),
+        ('Curativo simples', 'Kit para realização de curativo simples em feridas ou punções'),
     ]
 
     for name, description in procedures_data:
@@ -215,13 +172,12 @@ def upgrade() -> None:
             VALUES (HEXTORAW('{PROCEDURE_IDS[name].hex}'), '{name}', '{description}', TIMESTAMP '{now}', TIMESTAMP '{now}')
         """)
 
-    # Definir slots para cada procedimento no laboratório principal
+    # Definir slots para cada kit no laboratório principal
     slots = {
-        'Hemograma Completo': 1,
-        'Urinálise Completa': 2,
-        'Cultura de Escarro': 3,
-        'Biópsia por Punção': 4,
-        'Parasitológico de Fezes': 5
+        'Punção venosa simples': 1,
+        'Punção venosa com scalp': 2,
+        'Cateter venoso periférico': 3,
+        'Curativo simples': 4
     }
 
     for proc_name in PROCEDURE_IDS.keys():
@@ -230,72 +186,42 @@ def upgrade() -> None:
             VALUES (HEXTORAW('{DEFAULT_LAB_ID.hex}'), HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), {slots[proc_name]}, TIMESTAMP '{now}')
         """)
 
-    # Definir slots para o laboratório secundário
-    secondary_procedures = ['Hemograma Completo', 'Urinálise Completa', 'Parasitológico de Fezes']
-    secondary_slots = {
-        'Hemograma Completo': 1,
-        'Urinálise Completa': 2,
-        'Parasitológico de Fezes': 3
-    }
-
-    for proc_name in secondary_procedures:
+    # Definir slots para o laboratório secundário (todos os kits disponíveis)
+    for proc_name in PROCEDURE_IDS.keys():
         op.execute(f"""
             INSERT INTO laboratory_procedures (laboratory_id, procedure_id, slot, created_at)
-            VALUES (HEXTORAW('{SECONDARY_LAB_ID.hex}'), HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), {secondary_slots[proc_name]}, TIMESTAMP '{now}')
+            VALUES (HEXTORAW('{SECONDARY_LAB_ID.hex}'), HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), {slots[proc_name]}, TIMESTAMP '{now}')
         """)
 
+    # Definir uso de materiais por procedure
     procedure_usages = [
-        ('Hemograma Completo', 'Seringa 5ml', 1),
-        ('Hemograma Completo', 'Agulha 21G', 1),
-        ('Hemograma Completo', 'Tubo EDTA', 1),
-        ('Hemograma Completo', 'Álcool Swab', 2),
-        ('Hemograma Completo', 'Curativo', 1),
+        # Punção venosa simples
+        ('Punção venosa simples', 'Luvas descartáveis', 1),
+        ('Punção venosa simples', 'Gaze estéril', 1),
+        ('Punção venosa simples', 'Seringa 5ml', 1),
+        ('Punção venosa simples', 'Agulha 25x7', 1),  # Opção padrão (ou 25x8)
+        ('Punção venosa simples', 'Álcool 70% sachê', 1),
 
-        ('Urinálise Completa', 'Frasco Urina Estéril', 1),
-        ('Urinálise Completa', 'Fita Reagente Urina', 1),
-        ('Urinálise Completa', 'Pipeta Pasteur', 2),
-        ('Urinálise Completa', 'Lâmina Microscopia', 2),
-        ('Urinálise Completa', 'Lamínula', 2),
-        ('Urinálise Completa', 'Centrífuga Tubo', 1),
-        ('Urinálise Completa', 'Solução Fisiológica', 1),
+        # Punção venosa com scalp
+        ('Punção venosa com scalp', 'Luvas descartáveis', 1),
+        ('Punção venosa com scalp', 'Gaze estéril', 1),
+        ('Punção venosa com scalp', 'Scalp nº 21', 1),  # Opção padrão (ou nº 23)
+        ('Punção venosa com scalp', 'Seringa 5ml', 1),
+        ('Punção venosa com scalp', 'Álcool 70% sachê', 1),
 
-        ('Cultura de Escarro', 'Frasco Urina Estéril', 1),
-        ('Cultura de Escarro', 'Swab Estéril', 2),
-        ('Cultura de Escarro', 'Placa Ágar Sangue', 2),
-        ('Cultura de Escarro', 'Placa Ágar MacConkey', 1),
-        ('Cultura de Escarro', 'Placa Ágar Chocolate', 2),
-        ('Cultura de Escarro', 'Meio BHI', 1),
-        ('Cultura de Escarro', 'Disco Antibiótico', 8),
-        ('Cultura de Escarro', 'Alça Bacteriológica', 1),
-        ('Cultura de Escarro', 'Tubo Ensaio Estéril', 3),
-        ('Cultura de Escarro', 'Pipeta Pasteur', 5),
-        ('Cultura de Escarro', 'Lâmina Microscopia', 3),
-        ('Cultura de Escarro', 'Lamínula', 3),
+        # Cateter venoso periférico
+        ('Cateter venoso periférico', 'Luvas descartáveis', 1),
+        ('Cateter venoso periférico', 'Gaze estéril', 1),
+        ('Cateter venoso periférico', 'Cateter venoso periférico nº 20', 1),  # Opção padrão (ou nº 22)
+        ('Cateter venoso periférico', 'Seringa com solução salina', 1),
+        ('Cateter venoso periférico', 'Curativo transparente', 1),  # Opção padrão (ou micropore)
 
-        ('Biópsia por Punção', 'Agulha Biópsia 14G', 2),
-        ('Biópsia por Punção', 'Pistola Biópsia', 1),
-        ('Biópsia por Punção', 'Campo Cirúrgico', 2),
-        ('Biópsia por Punção', 'Anestésico Local', 1),
-        ('Biópsia por Punção', 'Seringa 10ml', 2),
-        ('Biópsia por Punção', 'Agulha 21G', 1),
-        ('Biópsia por Punção', 'Álcool Swab', 10),
-        ('Biópsia por Punção', 'Formol 10%', 1),
-        ('Biópsia por Punção', 'Frasco Histologia', 2),
-        ('Biópsia por Punção', 'Compressa Cirúrgica', 5),
-        ('Biópsia por Punção', 'Sutura', 1),
-        ('Biópsia por Punção', 'Curativo', 3),
-        ('Biópsia por Punção', 'Lâmina Microscopia', 5),
-        ('Biópsia por Punção', 'Lamínula', 5),
-        ('Biópsia por Punção', 'Pipeta Pasteur', 3),
-
-        ('Parasitológico de Fezes', 'Frasco Fezes', 1),
-        ('Parasitológico de Fezes', 'Kit Parasitológico', 1),
-        ('Parasitológico de Fezes', 'Solução Lugol', 1),
-        ('Parasitológico de Fezes', 'Solução Fisiológica', 1),
-        ('Parasitológico de Fezes', 'Centrífuga Tubo', 2),
-        ('Parasitológico de Fezes', 'Lâmina Microscopia', 4),
-        ('Parasitológico de Fezes', 'Lamínula', 4),
-        ('Parasitológico de Fezes', 'Pipeta Pasteur', 3),
+        # Curativo simples
+        ('Curativo simples', 'Luvas descartáveis', 1),
+        ('Curativo simples', 'Gaze estéril', 1),
+        ('Curativo simples', 'Soro fisiológico pequeno', 1),
+        ('Curativo simples', 'Micropore', 1),
+        ('Curativo simples', 'Álcool 70% sachê', 1),
     ]
 
     for proc_name, mat_name, amount in procedure_usages:
@@ -304,45 +230,25 @@ def upgrade() -> None:
             VALUES (HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), HEXTORAW('{MATERIAL_IDS[mat_name].hex}'), {amount})
         """)
 
+    # Definir estoque inicial dos materiais no laboratório principal
     material_stocks = {
-        'Seringa 5ml': 500,
-        'Seringa 10ml': 300,
-        'Agulha 21G': 1000,
-        'Agulha 23G': 800,
-        'Tubo EDTA': 600,
-        'Tubo Citrato': 200,
-        'Álcool Swab': 2000,
-        'Curativo': 1000,
+        'Luvas descartáveis': 1000,     # Muito usado
+        'Gaze estéril': 500,            # Muito usado
+        'Seringa 5ml': 300,
+        'Agulha 25x7': 400,
+        'Agulha 25x8': 300,
+        'Álcool 70% sachê': 800,        # Muito usado
 
-        'Frasco Urina Estéril': 300,
-        'Fita Reagente Urina': 100,
-        'Pipeta Pasteur': 1000,
-        'Lâmina Microscopia': 500,
-        'Lamínula': 500,
+        'Scalp nº 21': 100,
+        'Scalp nº 23': 80,
 
-        'Placa Ágar Sangue': 50,
-        'Placa Ágar MacConkey': 30,
-        'Placa Ágar Chocolate': 40,
-        'Swab Estéril': 200,
-        'Meio BHI': 25,
-        'Disco Antibiótico': 500,
-        'Alça Bacteriológica': 10,
-        'Tubo Ensaio Estéril': 100,
+        'Cateter venoso periférico nº 20': 50,
+        'Cateter venoso periférico nº 22': 40,
+        'Seringa com solução salina': 100,
+        'Curativo transparente': 80,
+        'Micropore': 200,               # Muito usado
 
-        'Agulha Biópsia 14G': 20,
-        'Pistola Biópsia': 5,
-        'Campo Cirúrgico': 50,
-        'Anestésico Local': 10,
-        'Formol 10%': 5,
-        'Frasco Histologia': 50,
-        'Compressa Cirúrgica': 100,
-        'Sutura': 30,
-
-        'Frasco Fezes': 200,
-        'Solução Lugol': 15,
-        'Solução Fisiológica': 50,
-        'Centrífuga Tubo': 300,
-        'Kit Parasitológico': 25,
+        'Soro fisiológico pequeno': 100,
     }
 
     for mat_name, stock in material_stocks.items():
@@ -351,27 +257,25 @@ def upgrade() -> None:
             VALUES (HEXTORAW('{MATERIAL_IDS[mat_name].hex}'), HEXTORAW('{DEFAULT_LAB_ID.hex}'), {stock}, 0, TIMESTAMP '{now}')
         """)
 
+    # Estoque reduzido para laboratório secundário
     secondary_materials = {
-        # Para Hemograma
-        'Seringa 5ml': 100,
-        'Agulha 21G': 200,
-        'Tubo EDTA': 150,
-        'Álcool Swab': 400,
-        'Curativo': 200,
+        'Luvas descartáveis': 200,
+        'Gaze estéril': 100,
+        'Seringa 5ml': 60,
+        'Agulha 25x7': 80,
+        'Agulha 25x8': 60,
+        'Álcool 70% sachê': 160,
 
-        # Para Urinálise
-        'Frasco Urina Estéril': 100,
-        'Fita Reagente Urina': 30,
-        'Pipeta Pasteur': 200,
-        'Lâmina Microscopia': 100,
-        'Lamínula': 100,
-        'Centrífuga Tubo': 50,
-        'Solução Fisiológica': 10,
+        'Scalp nº 21': 20,
+        'Scalp nº 23': 15,
 
-        # Para Parasitológico
-        'Frasco Fezes': 50,
-        'Kit Parasitológico': 10,
-        'Solução Lugol': 5,
+        'Cateter venoso periférico nº 20': 10,
+        'Cateter venoso periférico nº 22': 8,
+        'Seringa com solução salina': 20,
+        'Curativo transparente': 15,
+        'Micropore': 40,
+
+        'Soro fisiológico pequeno': 20,
     }
 
     for mat_name, stock in secondary_materials.items():
