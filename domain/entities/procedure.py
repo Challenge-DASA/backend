@@ -35,4 +35,5 @@ class Procedure:
 class LaboratoryProcedure:
     laboratory_id: LaboratoryId
     procedure_id: ProcedureId
+    slot_id: int
     created_at: datetime

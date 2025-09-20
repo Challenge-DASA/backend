@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from domain.entities.procedure import Procedure
+from domain.entities.procedure import Procedure, LaboratoryProcedure
 from domain.entities.procedure_usage import ProcedureUsage
 from domain.value_objects.ids import ProcedureId, LaboratoryId
 
@@ -25,4 +25,8 @@ class ProcedureRepository(ABC):
 
     @abstractmethod
     async def find_by_laboratory(self, laboratory_id: LaboratoryId) -> List[Procedure]:
+        pass
+
+    @abstractmethod
+    async def find_by_laboratory_procedure(self, laboratory_id: LaboratoryId) -> List[LaboratoryProcedure]:
         pass

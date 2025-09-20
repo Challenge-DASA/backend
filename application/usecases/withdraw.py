@@ -50,7 +50,7 @@ class WithdrawTransactionUseCase:
         user_id = UserId.from_string(str(context.user_id))
 
         await self._validate_procedure_exists(procedure_id)
-        await self._validate_procedure_available_in_laboratory(procedure_id, laboratory_id)
+        slot_id = await self._validate_procedure_available_in_laboratory(procedure_id, laboratory_id)
         procedure_materials = await self._get_required_materials(procedure_id)
         material_balances = await self._validate_stock_availability(procedure_materials, laboratory_id)
         await self._reserve_materials(material_balances, procedure_materials)
@@ -61,7 +61,7 @@ class WithdrawTransactionUseCase:
         )
         await self._save_transaction(transaction)
 
-        await self._execute_dispensation_commands(transaction_items, laboratory_id, procedure_id)
+        await self._execute_dispensation_commands(procedure_id, slot_id)
 
         return self._build_output(transaction)
 
@@ -75,13 +75,16 @@ class WithdrawTransactionUseCase:
             self,
             procedure_id: ProcedureId,
             laboratory_id: LaboratoryId
-    ) -> None:
-        lab_procedures = await self.procedure_repository.find_by_laboratory(laboratory_id)
-        if not any(p.procedure_id == procedure_id for p in lab_procedures):
-            raise ProcedureNotAvailableInLaboratoryError(
-                str(procedure_id.value),
-                str(laboratory_id.value)
-            )
+    ) -> int:
+        lab_procedures = await self.procedure_repository.find_by_laboratory_procedure(laboratory_id)
+
+        for p in lab_procedures:
+            return p.slot_id
+
+        raise ProcedureNotAvailableInLaboratoryError(
+            str(procedure_id.value),
+            str(laboratory_id.value)
+        )
 
     async def _get_required_materials(self, procedure_id: ProcedureId) -> List[ProcedureUsage]:
         procedure_materials = await self.procedure_repository.find_required_materials(procedure_id)
@@ -196,13 +199,10 @@ class WithdrawTransactionUseCase:
                 }
             )
 
-    async def _execute_dispensation_commands(self, transaction_items: List[TransactionItem],
-                                             laboratory_id: LaboratoryId, procedure_id: ProcedureId) -> None:
+    async def _execute_dispensation_commands(self, procedure_id: ProcedureId, procedure_slot: int) -> None:
         from infrastructure.mqtt.integration import send_device_command
 
         device_id = "smartlab_001"
-
-        procedure_slot = self._get_procedure_slot(procedure_id)
 
         success = send_device_command(device_id, "withdraw", slot=procedure_slot)
 

@@ -1,8 +1,8 @@
 import uuid
-from domain.entities.procedure import Procedure
+from domain.entities.procedure import Procedure, LaboratoryProcedure
 from domain.entities.procedure_usage import ProcedureUsage
-from domain.value_objects.ids import ProcedureId, MaterialId
-from infrastructure.storage.models.procedure import ProcedureModel, ProcedureUsageModel
+from domain.value_objects.ids import ProcedureId, MaterialId, LaboratoryId
+from infrastructure.storage.models.procedure import ProcedureModel, ProcedureUsageModel, LaboratoryProcedureModel
 
 
 # storage/mappers/procedure_mapper.py
@@ -48,4 +48,24 @@ class ProcedureUsageMapper:
             procedure_id=entity.procedure_id.value.bytes,
             material_id=entity.material_id.value.bytes,
             required_amount=entity.required_amount
+        )
+
+class LaboratoryProcedureMapper:
+
+    @staticmethod
+    def to_domain(model: LaboratoryProcedureModel) -> LaboratoryProcedure:
+        return LaboratoryProcedure(
+            laboratory_id=LaboratoryId(uuid.UUID(bytes=model.laboratory_id)),
+            procedure_id=ProcedureId(uuid.UUID(bytes=model.procedure_id)),
+            slot_id=model.slot,
+            created_at=model.created_at
+        )
+
+    @staticmethod
+    def to_model(entity: LaboratoryProcedure) -> LaboratoryProcedureModel:
+        return LaboratoryProcedureModel(
+            laboratory_id=entity.laboratory_id.value.bytes,
+            procedure_id=entity.procedure_id.value.bytes,
+            slot=entity.slot_id,
+            created_at=entity.created_at
         )

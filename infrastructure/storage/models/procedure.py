@@ -31,6 +31,7 @@ class LaboratoryProcedureModel(Base):
 
     laboratory_id = Column(RAW(16), primary_key=True)
     procedure_id = Column(RAW(16), ForeignKey('procedures.procedure_id'), primary_key=True)
+    slot = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.UTC), nullable=False)
 
     # Relationship
