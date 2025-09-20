@@ -57,8 +57,6 @@ class WithdrawTransactionUseCase:
         )
         await self._save_transaction(transaction)
 
-        # TODO: Enviar para fila de processamento assíncrono
-
         return self._build_output(transaction)
 
     async def _validate_procedure_exists(self, procedure_id: ProcedureId) -> Procedure:
