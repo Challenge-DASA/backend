@@ -1,4 +1,6 @@
 import datetime
+import logging
+import uuid
 from uuid import uuid4
 from typing import List, Dict
 
@@ -24,7 +26,9 @@ from domain.repositories.material import MaterialBalanceRepository, MaterialRepo
 from domain.repositories.procedure import ProcedureRepository
 from domain.repositories.transaction import TransactionRepository
 from domain.value_objects.enums import TransactionType, TransactionStatus
-from domain.value_objects.ids import LaboratoryId, ProcedureId, TransactionId, MaterialId
+from domain.value_objects.ids import LaboratoryId, ProcedureId, TransactionId, MaterialId, UserId
+
+logger = logging.getLogger(__name__)
 
 
 class WithdrawTransactionUseCase:
@@ -43,7 +47,7 @@ class WithdrawTransactionUseCase:
     async def execute(self, context: Context, input_data: WithdrawTransactionInput) -> WithdrawTransactionOutput:
         laboratory_id = LaboratoryId.from_string(input_data.laboratory_id)
         procedure_id = ProcedureId.from_string(input_data.procedure_id)
-        user_id = context.user_id
+        user_id = UserId.from_string(str(context.user_id))
 
         await self._validate_procedure_exists(procedure_id)
         await self._validate_procedure_available_in_laboratory(procedure_id, laboratory_id)
@@ -56,6 +60,8 @@ class WithdrawTransactionUseCase:
             laboratory_id, procedure_id, user_id, transaction_items
         )
         await self._save_transaction(transaction)
+
+        await self._execute_dispensation_commands(transaction_items, laboratory_id, procedure_id)
 
         return self._build_output(transaction)
 
@@ -189,6 +195,24 @@ class WithdrawTransactionUseCase:
                     "procedure_id": str(transaction.procedure_id.value)
                 }
             )
+
+    async def _execute_dispensation_commands(self, transaction_items: List[TransactionItem],
+                                             laboratory_id: LaboratoryId, procedure_id: ProcedureId) -> None:
+        from infrastructure.mqtt.integration import send_device_command
+
+        device_id = "smartlab_001"
+
+        procedure_slot = self._get_procedure_slot(procedure_id)
+
+        success = send_device_command(device_id, "withdraw", slot=procedure_slot)
+
+        if success:
+            logger.info(f"Comando de dispensação enviado para procedimento {procedure_id.value}, slot {procedure_slot}")
+        else:
+            logger.error(f"Falha ao enviar comando para procedimento {procedure_id.value}, slot {procedure_slot}")
+
+    def _get_procedure_slot(self, procedure_id: ProcedureId) -> int:
+        return int(str(procedure_id.value)[-1]) + 1
 
     @staticmethod
     def _build_output(transaction: Transaction) -> WithdrawTransactionOutput:
