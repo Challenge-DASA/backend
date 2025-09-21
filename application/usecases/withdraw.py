@@ -79,7 +79,8 @@ class WithdrawTransactionUseCase:
         lab_procedures = await self.procedure_repository.find_by_laboratory_procedure(laboratory_id)
 
         for p in lab_procedures:
-            return p.slot_id
+            if p.laboratory_id == laboratory_id and procedure_id == p.procedure_id:
+                return p.slot_id
 
         raise ProcedureNotAvailableInLaboratoryError(
             str(procedure_id.value),
