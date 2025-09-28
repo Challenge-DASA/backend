@@ -49,6 +49,8 @@ class MQTTHandlers:
                     logger.info(f"Dispositivo {device_id} autorizado")
                 else:
                     logger.warning(f"Dispositivo {device_id} não autorizado")
+
+                self.send_authorize_command()
             else:
                 response_topic = mqtt_topics.device_connection_response(device_id).topic
                 mqtt_client.publish(response_topic, "authorized")
@@ -108,5 +110,10 @@ class MQTTHandlers:
             logger.error(f"Erro ao enviar comando de withdraw: {e}")
             return False
 
+    def send_authorize_command(self):
+        mqtt_client.publish(topic="devices/connection/response/smartlab_001", payload=json.dumps({
+            "status": "approved",
+            "device_id": "smartlab_001"
+        }))
 
 mqtt_handlers = MQTTHandlers()
