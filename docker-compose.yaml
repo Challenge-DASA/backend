@@ -46,7 +46,7 @@ services:
       ORACLE_PASSWORD: smartlab123
 
       # MQTT Configuration
-      MQTT_BROKER_HOST: mqtt
+      MQTT_BROKER_HOST: mosquitto
       MQTT_BROKER_PORT: 1883
       MQTT_QOS: 1
       MQTT_KEEPALIVE: 60
@@ -55,8 +55,6 @@ services:
       # TEMP_USER_ID: 12345678-1234-5678-1234-123456789012
     depends_on:
       oracle:
-        condition: service_healthy
-      mqtt:
         condition: service_healthy
     networks:
       - app-net
