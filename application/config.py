@@ -13,18 +13,17 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-change-in-production')
     JWT_ALGORITHM = os.getenv('JWT_ALGORITHM', 'HS256')
 
-    VERSION = os.getenv('APP_VERSION', '1.0.0')
     API_NAME = os.getenv('API_NAME', 'SmartLab API')
     ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
     BUILD_DATE = os.getenv('BUILD_DATE', datetime.utcnow().isoformat())
     GIT_COMMIT = os.getenv('GIT_COMMIT', 'unknown')
 
-    # Oracle Database Configuration
-    ORACLE_HOST = os.getenv('ORACLE_HOST', 'localhost')
-    ORACLE_PORT = int(os.getenv('ORACLE_PORT', '1521'))
-    ORACLE_SERVICE_NAME = os.getenv('ORACLE_SERVICE_NAME', 'FREEPDB1')
-    ORACLE_USERNAME = os.getenv('ORACLE_USERNAME', 'smartlab')
-    ORACLE_PASSWORD = os.getenv('ORACLE_PASSWORD', 'smartlab123')
+    # PostgreSQL Database Configuration
+    POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
+    POSTGRES_PORT = int(os.getenv('POSTGRES_PORT', '5432'))
+    POSTGRES_DB = os.getenv('POSTGRES_DB', 'smartlab')
+    POSTGRES_USER = os.getenv('POSTGRES_USER', 'postgres')
+    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'postgres')
 
     # MQTT Configuration
     MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST', 'localhost')
@@ -36,7 +35,7 @@ class Config:
     MQTT_KEEPALIVE = int(os.getenv('MQTT_KEEPALIVE', '60'))
 
     def DATABASE_URL(self) -> str:
-        return f"oracle+oracledb://{self.ORACLE_USERNAME}:{self.ORACLE_PASSWORD}@{self.ORACLE_HOST}:{self.ORACLE_PORT}/?service_name={self.ORACLE_SERVICE_NAME}"
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 
 class DevelopmentConfig(Config):
@@ -44,9 +43,9 @@ class DevelopmentConfig(Config):
     ENABLE_REQUEST_LOGGING = True
     ENVIRONMENT = 'development'
 
-    ORACLE_HOST = os.getenv('ORACLE_HOST', 'localhost')
-    ORACLE_SERVICE_NAME = os.getenv('ORACLE_SERVICE_NAME', 'FREEPDB1')
-    ORACLE_PASSWORD = os.getenv('ORACLE_PASSWORD', 'smartlab123')
+    POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
+    POSTGRES_DB = os.getenv('POSTGRES_DB', 'smartlab')
+    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'postgres')
     MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST', 'localhost')
 
 
@@ -60,16 +59,14 @@ class ProductionConfig(Config):
     BUILD_DATE = os.getenv('BUILD_DATE')
     GIT_COMMIT = os.getenv('GIT_COMMIT')
 
-    ORACLE_HOST = os.getenv('ORACLE_HOST')
-    ORACLE_USERNAME = os.getenv('ORACLE_USERNAME')
-    ORACLE_PASSWORD = os.getenv('ORACLE_PASSWORD')
-    ORACLE_SERVICE_NAME = os.getenv('ORACLE_SERVICE_NAME', 'FREEPDB1')
+    POSTGRES_HOST = os.getenv('POSTGRES_HOST')
+    POSTGRES_USER = os.getenv('POSTGRES_USER', 'postgres')
+    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+    POSTGRES_DB = os.getenv('POSTGRES_DB', 'smartlab')
 
     MQTT_BROKER_HOST = os.getenv('MQTT_BROKER_HOST')
     MQTT_USERNAME = os.getenv('MQTT_USERNAME')
     MQTT_PASSWORD = os.getenv('MQTT_PASSWORD')
-
-
 config_by_name = {
     'development': DevelopmentConfig(),
     'production': ProductionConfig()
@@ -84,9 +81,9 @@ def get_config():
         if not config_class.JWT_SECRET_KEY:
             raise ValueError("JWT_SECRET_KEY must be set in production")
 
-        if not all([config_class.ORACLE_HOST, config_class.ORACLE_USERNAME,
-                    config_class.ORACLE_PASSWORD, config_class.ORACLE_SERVICE_NAME]):
-            raise ValueError("Oracle configuration must be set in production")
+        if not all([config_class.POSTGRES_HOST, config_class.POSTGRES_USER,
+                   config_class.POSTGRES_PASSWORD, config_class.POSTGRES_DB]):
+            raise ValueError("PostgreSQL configuration must be set in production")
 
         if not config_class.BUILD_DATE:
             raise ValueError("BUILD_DATE should be set in production")

@@ -7,15 +7,23 @@ config = get_config()
 engine = create_async_engine(
     config.DATABASE_URL(),
     poolclass=NullPool,
-    future=True
+    future=True,
+    echo=config.DEBUG
 )
 
 async_session_factory = async_sessionmaker(
-    engine,
+    bind=engine,
     class_=AsyncSession,
-    expire_on_commit=False
+    expire_on_commit=False,
+    autoflush=False
 )
 
 async def get_session() -> AsyncSession:
     async with async_session_factory() as session:
-        yield session
+        try:
+            yield session
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()

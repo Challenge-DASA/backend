@@ -1,21 +1,21 @@
 version: '3.8'
 
 services:
-  oracle:
-    image: gvenzl/oracle-free:latest
+  postgres:
+    image: postgres:15-alpine
     environment:
-      ORACLE_DATABASE: smartlab
-      ORACLE_PASSWORD: oracle123
-      APP_USER: smartlab
-      APP_USER_PASSWORD: smartlab123
+      POSTGRES_DB: smartlab
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "1521:1521"
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "healthcheck.sh"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
       retries: 5
-      start_period: 60s
     networks:
       - app-net
 
@@ -38,12 +38,12 @@ services:
       JWT_SECRET_KEY: jwt-secret-change-in-production
       JWT_ALGORITHM: HS256
 
-      # Oracle Database Configuration
-      ORACLE_HOST: oracle
-      ORACLE_PORT: 1521
-      ORACLE_SERVICE_NAME: FREEPDB1
-      ORACLE_USERNAME: smartlab
-      ORACLE_PASSWORD: smartlab123
+      # PostgreSQL Database Configuration
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: smartlab
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
 
       # MQTT Configuration
       MQTT_BROKER_HOST: mosquitto
@@ -54,7 +54,7 @@ services:
       # Optional: Temp User ID
       # TEMP_USER_ID: 12345678-1234-5678-1234-123456789012
     depends_on:
-      oracle:
+      postgres:
         condition: service_healthy
     networks:
       - app-net
@@ -62,3 +62,6 @@ services:
 networks:
   app-net:
     driver: bridge
+
+volumes:
+  postgres_data:
