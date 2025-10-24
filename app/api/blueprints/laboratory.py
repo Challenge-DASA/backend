@@ -1,5 +1,4 @@
-import quart_schema
-from quart import Blueprint
+from quart import Blueprint, jsonify
 from quart_schema import tag_blueprint
 
 from application.dto.input.transaction import WithdrawTransactionInput
@@ -14,22 +13,21 @@ laboratory_bp = Blueprint('laboratory', __name__, url_prefix='/laboratory')
 tag_blueprint(laboratory_bp, ["Laboratory"])
 
 @laboratory_bp.get("/<string:laboratory_id>/procedures")
-@quart_schema.validate_response(ListProceduresOutput)
 async def list_procedures(laboratory_id: str):
     async with container.get_session():
         input_data = ListProceduresInput(laboratory_id=laboratory_id)
-        return await container.list_procedures_use_case.execute(input_data)
+        result = await container.list_procedures_use_case.execute(input_data)
+        return jsonify(result.model_dump() if hasattr(result, 'model_dump') else result)
 
 @laboratory_bp.get("/<string:laboratory_id>/balance")
-@quart_schema.validate_response(ListLaboratoryBalanceOutput)
 async def list_balance(laboratory_id: str):
     async with container.get_session():
         input_data = ListLaboratoryBalanceInput(laboratory_id=laboratory_id)
-        return await container.list_laboratory_balance_use_case.execute(input_data)
+        result = await container.list_laboratory_balance_use_case.execute(input_data)
+        return jsonify(result.model_dump() if hasattr(result, 'model_dump') else result)
 
 
 @laboratory_bp.post("/<string:laboratory_id>/withdraw/<string:procedure_id>")
-@quart_schema.validate_response(WithdrawTransactionOutput)
 async def withdraw(laboratory_id: str, procedure_id: str):
     from quart import request
 
@@ -37,7 +35,7 @@ async def withdraw(laboratory_id: str, procedure_id: str):
 
     user_id = request.headers.get('Authorization')
     if not user_id:
-        return {"error": "Authorization header required"}, 401
+        return jsonify({"error": "Authorization header required"}), 401
 
     context.user_id = user_id
 
@@ -46,4 +44,5 @@ async def withdraw(laboratory_id: str, procedure_id: str):
             laboratory_id=laboratory_id,
             procedure_id=procedure_id,
         )
-        return await container.withdraw_transaction_use_case.execute(context, input_data)
+        result = await container.withdraw_transaction_use_case.execute(context, input_data)
+        return jsonify(result.model_dump() if hasattr(result, 'model_dump') else result)

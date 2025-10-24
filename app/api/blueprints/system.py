@@ -2,7 +2,7 @@ import time
 import datetime
 from typing import Optional
 
-from quart import Blueprint, current_app
+from quart import Blueprint, current_app, jsonify
 from quart_schema import tag_blueprint, validate_response
 from pydantic import BaseModel, Field
 
@@ -37,7 +37,6 @@ app_start_time = time.time()
 
 
 @system_bp.get("/health")
-@validate_response(HealthResponse, 200)
 @validate_response(ErrorResponse, 500)
 async def health_check():
     try:
@@ -52,7 +51,7 @@ async def health_check():
             uptime=round(uptime, 2),
         )
 
-        return response_data, 200
+        return jsonify(response_data.model_dump()), 200
 
     except (AttributeError, KeyError, ValueError, TypeError):
         try:
@@ -63,14 +62,13 @@ async def health_check():
 
         error_response = ErrorResponse(
             error="Health check failed",
-            request_id=str(request_id),
+            request_id=str(request_id) if request_id else None,
             timestamp=datetime.datetime.now(datetime.UTC).isoformat()
         )
-        return error_response, 500
+        return jsonify(error_response.model_dump()), 500
 
 
 @system_bp.get("/version")
-@validate_response(VersionResponse, 200)
 @validate_response(ErrorResponse, 500)
 async def version():
     try:
@@ -82,7 +80,7 @@ async def version():
             environment=current_app.config.get('ENVIRONMENT', 'development')
         )
 
-        return response_data, 200
+        return jsonify(response_data.model_dump()), 200
 
     except (AttributeError, KeyError):
         error_response = ErrorResponse(
@@ -90,14 +88,14 @@ async def version():
             request_id=None,
             timestamp=datetime.datetime.now(datetime.UTC).isoformat()
         )
-        return error_response, 500
+        return jsonify(error_response.model_dump()), 500
 
 
 @system_bp.errorhandler(Exception)
 async def handle_exception(e):
     try:
         context = get_context()
-        request_id = context.request_id
+        request_id = str(context.request_id)
     except (AttributeError, RuntimeError):
         request_id = None
 
@@ -106,4 +104,4 @@ async def handle_exception(e):
         request_id=request_id,
         timestamp=datetime.datetime.now(datetime.UTC).isoformat()
     )
-    return error_response, 500
+    return jsonify(error_response.model_dump()), 500

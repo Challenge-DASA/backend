@@ -1,4 +1,3 @@
-# app/migrations_manager/main.py
 import os
 import sys
 from pathlib import Path
@@ -6,6 +5,7 @@ from dotenv import load_dotenv
 from alembic.config import Config
 from alembic import command
 import click
+from urllib.parse import quote_plus
 
 project_root = Path(__file__).parent.parent.parent
 migrations_manager_dir = Path(__file__).parent
@@ -35,16 +35,20 @@ class MigrationsManager:
 
     @staticmethod
     def _get_database_url() -> str:
-        host = os.getenv('ORACLE_HOST', 'localhost')
-        port = os.getenv('ORACLE_PORT', '1521')
-        service_name = os.getenv('ORACLE_SERVICE_NAME', 'FREEPDB1')
-        username = os.getenv('ORACLE_USERNAME')
-        password = os.getenv('ORACLE_PASSWORD')
+        host = os.getenv('POSTGRES_HOST', 'localhost')
+        port = os.getenv('POSTGRES_PORT', '5432')
+        database = os.getenv('POSTGRES_DB', 'smartlab')
+        username = os.getenv('POSTGRES_USER', 'postgres')
+        password = os.getenv('POSTGRES_PASSWORD')
 
-        if not username or not password:
-            raise ValueError("ORACLE_USERNAME e ORACLE_PASSWORD devem estar definidos no .env")
+        if not password:
+            raise ValueError("POSTGRES_PASSWORD deve estar definido no .env")
 
-        url = f"oracle+oracledb://{username}:{password}@{host}:{port}/?service_name={service_name}"
+        # URL encode password to handle special characters
+        password_encoded = quote_plus(password)
+
+        # Use asyncpg driver for async support
+        url = f"postgresql+asyncpg://{username}:{password_encoded}@{host}:{port}/{database}"
         return str(url)
 
     def create_migration(self, message: str):
@@ -91,10 +95,10 @@ class MigrationsManager:
             click.echo(f"   .env Path: {env_path}")
             click.echo(f"   alembic.ini: {alembic_ini}")
             click.echo(f"   Database URL: {database_url}")
-            click.echo(f"   ORACLE_HOST: {os.getenv('ORACLE_HOST')}")
-            click.echo(f"   ORACLE_PORT: {os.getenv('ORACLE_PORT')}")
-            click.echo(f"   ORACLE_SERVICE_NAME: {os.getenv('ORACLE_SERVICE_NAME')}")
-            click.echo(f"   ORACLE_USERNAME: {os.getenv('ORACLE_USERNAME')}")
+            click.echo(f"   POSTGRES_HOST: {os.getenv('POSTGRES_HOST')}")
+            click.echo(f"   POSTGRES_PORT: {os.getenv('POSTGRES_PORT')}")
+            click.echo(f"   POSTGRES_DB: {os.getenv('POSTGRES_DB')}")
+            click.echo(f"   POSTGRES_USER: {os.getenv('POSTGRES_USER')}")
         except Exception as e:
             click.echo(f"Erro na configuração: {e}", err=True)
 

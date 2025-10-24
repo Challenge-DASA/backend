@@ -27,8 +27,8 @@ class MaterialBalanceRepositoryImpl(MaterialBalanceRepository):
             laboratory_id: LaboratoryId
     ) -> Optional[MaterialBalance]:
         stmt = select(MaterialBalanceModel).where(
-            MaterialBalanceModel.material_id == material_id.value.bytes,
-            MaterialBalanceModel.laboratory_id == laboratory_id.value.bytes
+            MaterialBalanceModel.material_id == material_id.value,
+            MaterialBalanceModel.laboratory_id == laboratory_id.value
         )
 
         result = await self.session.execute(stmt)
@@ -38,7 +38,7 @@ class MaterialBalanceRepositoryImpl(MaterialBalanceRepository):
 
     async def find_by_laboratory(self, laboratory_id: LaboratoryId) -> List[MaterialBalance]:
         stmt = select(MaterialBalanceModel).where(
-            MaterialBalanceModel.laboratory_id == laboratory_id.value.bytes
+            MaterialBalanceModel.laboratory_id == laboratory_id.value
         )
 
         result = await self.session.execute(stmt)
@@ -51,11 +51,11 @@ class MaterialBalanceRepositoryImpl(MaterialBalanceRepository):
             material_ids: List[MaterialId],
             laboratory_id: LaboratoryId
     ) -> List[MaterialBalance]:
-        material_bytes = [mid.value.bytes for mid in material_ids]
+        material_uuids = [mid.value for mid in material_ids]
 
         stmt = select(MaterialBalanceModel).where(
-            MaterialBalanceModel.material_id.in_(material_bytes),
-            MaterialBalanceModel.laboratory_id == laboratory_id.value.bytes
+            MaterialBalanceModel.material_id.in_(material_uuids),
+            MaterialBalanceModel.laboratory_id == laboratory_id.value
         )
 
         result = await self.session.execute(stmt)

@@ -22,5 +22,5 @@ COPY . .
 # Expose Quart default port
 EXPOSE 5000
 
-# Set entrypoint
-CMD ["python", "-m", "app.api.main"]
+# Run with Hypercorn (production-ready ASGI server)
+CMD ["hypercorn", "app.api.main:app", "--bind", "0.0.0.0:5000"]

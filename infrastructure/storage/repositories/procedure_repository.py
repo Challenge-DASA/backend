@@ -16,7 +16,7 @@ class ProcedureRepositoryImpl(ProcedureRepository):
 
     async def find_by_id(self, procedure_id: ProcedureId) -> Optional[Procedure]:
         stmt = select(ProcedureModel).where(
-            ProcedureModel.procedure_id == procedure_id.value.bytes
+            ProcedureModel.procedure_id == procedure_id.value
         )
 
         result = await self.session.execute(stmt)
@@ -29,7 +29,7 @@ class ProcedureRepositoryImpl(ProcedureRepository):
             procedure_id: ProcedureId
     ) -> List[ProcedureUsage]:
         stmt = select(ProcedureUsageModel).where(
-            ProcedureUsageModel.procedure_id == procedure_id.value.bytes
+            ProcedureUsageModel.procedure_id == procedure_id.value
         )
 
         result = await self.session.execute(stmt)
@@ -39,7 +39,7 @@ class ProcedureRepositoryImpl(ProcedureRepository):
 
     async def exists(self, procedure_id: ProcedureId) -> bool:
         stmt = select(ProcedureModel.procedure_id).where(
-            ProcedureModel.procedure_id == procedure_id.value.bytes,
+            ProcedureModel.procedure_id == procedure_id.value,
             ProcedureModel.is_deleted == False
         )
 
@@ -48,7 +48,7 @@ class ProcedureRepositoryImpl(ProcedureRepository):
 
     async def find_by_laboratory_procedure(self, laboratory_id: LaboratoryId) -> List[LaboratoryProcedure]:
         stmt = select(LaboratoryProcedureModel).where(
-            LaboratoryProcedureModel.laboratory_id == laboratory_id.value.bytes
+            LaboratoryProcedureModel.laboratory_id == laboratory_id.value
         )
 
         result = await self.session.execute(stmt)
@@ -61,7 +61,7 @@ class ProcedureRepositoryImpl(ProcedureRepository):
             LaboratoryProcedureModel,
             ProcedureModel.procedure_id == LaboratoryProcedureModel.procedure_id
         ).where(
-            LaboratoryProcedureModel.laboratory_id == laboratory_id.value.bytes,
+            LaboratoryProcedureModel.laboratory_id == laboratory_id.value,
             ProcedureModel.is_deleted == False
         )
 

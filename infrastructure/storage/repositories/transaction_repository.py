@@ -2,6 +2,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+
 from domain.entities.transaction import Transaction
 from domain.repositories.transaction import TransactionRepository
 from domain.value_objects.ids import TransactionId
@@ -17,7 +18,7 @@ class TransactionRepositoryImpl(TransactionRepository):
     async def save(self, transaction: Transaction) -> None:
         transaction_model = TransactionMapper.to_model(transaction)
 
-        existing = await self.session.get(TransactionModel, transaction.transaction_id.value.bytes)
+        existing = await self.session.get(TransactionModel, transaction.transaction_id.value)
 
         if existing:
             existing.status = transaction_model.status
@@ -36,7 +37,7 @@ class TransactionRepositoryImpl(TransactionRepository):
         stmt = (
             select(TransactionModel)
             .options(selectinload(TransactionModel.items))
-            .where(TransactionModel.transaction_id == transaction_id.value.bytes)
+            .where(TransactionModel.transaction_id == transaction_id.value)
         )
 
         result = await self.session.execute(stmt)
@@ -46,7 +47,7 @@ class TransactionRepositoryImpl(TransactionRepository):
 
     async def exists(self, transaction_id: TransactionId) -> bool:
         stmt = select(TransactionModel.transaction_id).where(
-            TransactionModel.transaction_id == transaction_id.value.bytes
+            TransactionModel.transaction_id == transaction_id.value
         )
 
         result = await self.session.execute(stmt)

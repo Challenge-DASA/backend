@@ -16,7 +16,7 @@ class MaterialRepositoryImpl(MaterialRepository):
 
     async def find_by_id(self, material_id: MaterialId) -> Optional[Material]:
         stmt = select(MaterialModel).where(
-            MaterialModel.material_id == material_id.value.bytes,
+            MaterialModel.material_id == material_id.value,
             MaterialModel.is_deleted == False
         )
         result = await self.session.execute(stmt)
@@ -31,10 +31,10 @@ class MaterialRepositoryImpl(MaterialRepository):
         if not material_ids:
             return []
 
-        material_bytes = [mid.value.bytes for mid in material_ids]
+        material_uuids = [mid.value for mid in material_ids]
 
         stmt = select(MaterialModel).where(
-            MaterialModel.material_id.in_(material_bytes),
+            MaterialModel.material_id.in_(material_uuids),
             MaterialModel.is_deleted == False
         )
 
@@ -45,7 +45,7 @@ class MaterialRepositoryImpl(MaterialRepository):
 
     async def exists(self, material_id: MaterialId) -> bool:
         stmt = select(MaterialModel).where(
-            MaterialModel.material_id == material_id.value.bytes,
+            MaterialModel.material_id == material_id.value,
             MaterialModel.is_deleted == False
         )
         result = await self.session.execute(stmt)

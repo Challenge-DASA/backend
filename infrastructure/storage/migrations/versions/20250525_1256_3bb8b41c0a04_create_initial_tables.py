@@ -9,7 +9,7 @@ import datetime
 from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import oracle
+from sqlalchemy.dialects import postgresql
 import uuid
 
 # revision identifiers, used by Alembic.
@@ -56,28 +56,28 @@ def upgrade() -> None:
     """Upgrade schema."""
 
     op.create_table('materials',
-        sa.Column('material_id', oracle.RAW(16), primary_key=True),
+        sa.Column('material_id', postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('description', sa.String(1000), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
-        sa.Column('is_deleted', sa.Boolean(), nullable=False, server_default='0'),
+        sa.Column('is_deleted', sa.Boolean(), nullable=False, server_default='false'),
         sa.Column('deleted_at', sa.DateTime(), nullable=True)
     )
 
     op.create_table('procedures',
-        sa.Column('procedure_id', oracle.RAW(16), primary_key=True),
+        sa.Column('procedure_id', postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('description', sa.String(1000), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
-        sa.Column('is_deleted', sa.Boolean(), nullable=False, server_default='0'),
+        sa.Column('is_deleted', sa.Boolean(), nullable=False, server_default='false'),
         sa.Column('deleted_at', sa.DateTime(), nullable=True)
     )
 
     op.create_table('laboratory_procedures',
-        sa.Column('laboratory_id', oracle.RAW(16), nullable=False),
-        sa.Column('procedure_id', oracle.RAW(16), nullable=False),
+        sa.Column('laboratory_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('procedure_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('slot', sa.Integer(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint('laboratory_id', 'procedure_id'),
@@ -85,8 +85,8 @@ def upgrade() -> None:
     )
 
     op.create_table('procedure_usages',
-        sa.Column('procedure_id', oracle.RAW(16), nullable=False),
-        sa.Column('material_id', oracle.RAW(16), nullable=False),
+        sa.Column('procedure_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('material_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('required_amount', sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint('procedure_id', 'material_id'),
         sa.ForeignKeyConstraint(['procedure_id'], ['procedures.procedure_id']),
@@ -94,8 +94,8 @@ def upgrade() -> None:
     )
 
     op.create_table('material_balances',
-        sa.Column('material_id', oracle.RAW(16), nullable=False),
-        sa.Column('laboratory_id', oracle.RAW(16), nullable=False),
+        sa.Column('material_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('laboratory_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('current_stock', sa.Integer(), nullable=False, server_default='0'),
         sa.Column('reserved_stock', sa.Integer(), nullable=False, server_default='0'),
         sa.Column('last_updated', sa.DateTime(), nullable=False),
@@ -104,12 +104,12 @@ def upgrade() -> None:
     )
 
     op.create_table('transactions',
-        sa.Column('transaction_id', oracle.RAW(16), primary_key=True),
+        sa.Column('transaction_id', postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column('transaction_type', sa.String(20), nullable=False),
         sa.Column('status', sa.String(20), nullable=False),
-        sa.Column('laboratory_id', oracle.RAW(16), nullable=False),
-        sa.Column('user_id', oracle.RAW(16), nullable=False),
-        sa.Column('procedure_id', oracle.RAW(16), nullable=True),
+        sa.Column('laboratory_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('procedure_id', postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('authorized_at', sa.DateTime(), nullable=True),
         sa.Column('completed_at', sa.DateTime(), nullable=True),
@@ -117,8 +117,8 @@ def upgrade() -> None:
     )
 
     op.create_table('transaction_items',
-        sa.Column('transaction_id', oracle.RAW(16), nullable=False),
-        sa.Column('material_id', oracle.RAW(16), nullable=False),
+        sa.Column('transaction_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('material_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('quantity', sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint('transaction_id', 'material_id'),
         sa.ForeignKeyConstraint(['transaction_id'], ['transactions.transaction_id']),
@@ -155,7 +155,7 @@ def upgrade() -> None:
     for name, description in materials_data:
         op.execute(f"""
             INSERT INTO materials (material_id, name, description, created_at, updated_at)
-            VALUES (HEXTORAW('{MATERIAL_IDS[name].hex}'), '{name}', '{description}', TIMESTAMP '{now}', TIMESTAMP '{now}')
+            VALUES ('{MATERIAL_IDS[name]}'::uuid, '{name}', '{description}', '{now}'::timestamp, '{now}'::timestamp)
         """)
 
     # Inserir procedures (kits)
@@ -169,7 +169,7 @@ def upgrade() -> None:
     for name, description in procedures_data:
         op.execute(f"""
             INSERT INTO procedures (procedure_id, name, description, created_at, updated_at)
-            VALUES (HEXTORAW('{PROCEDURE_IDS[name].hex}'), '{name}', '{description}', TIMESTAMP '{now}', TIMESTAMP '{now}')
+            VALUES ('{PROCEDURE_IDS[name]}'::uuid, '{name}', '{description}', '{now}'::timestamp, '{now}'::timestamp)
         """)
 
     # Definir slots para cada kit no laboratório principal
@@ -183,14 +183,14 @@ def upgrade() -> None:
     for proc_name in PROCEDURE_IDS.keys():
         op.execute(f"""
             INSERT INTO laboratory_procedures (laboratory_id, procedure_id, slot, created_at)
-            VALUES (HEXTORAW('{DEFAULT_LAB_ID.hex}'), HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), {slots[proc_name]}, TIMESTAMP '{now}')
+            VALUES ('{DEFAULT_LAB_ID}'::uuid, '{PROCEDURE_IDS[proc_name]}'::uuid, {slots[proc_name]}, '{now}'::timestamp)
         """)
 
     # Definir slots para o laboratório secundário (todos os kits disponíveis)
     for proc_name in PROCEDURE_IDS.keys():
         op.execute(f"""
             INSERT INTO laboratory_procedures (laboratory_id, procedure_id, slot, created_at)
-            VALUES (HEXTORAW('{SECONDARY_LAB_ID.hex}'), HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), {slots[proc_name]}, TIMESTAMP '{now}')
+            VALUES ('{SECONDARY_LAB_ID}'::uuid, '{PROCEDURE_IDS[proc_name]}'::uuid, {slots[proc_name]}, '{now}'::timestamp)
         """)
 
     # Definir uso de materiais por procedure
@@ -227,7 +227,7 @@ def upgrade() -> None:
     for proc_name, mat_name, amount in procedure_usages:
         op.execute(f"""
             INSERT INTO procedure_usages (procedure_id, material_id, required_amount)
-            VALUES (HEXTORAW('{PROCEDURE_IDS[proc_name].hex}'), HEXTORAW('{MATERIAL_IDS[mat_name].hex}'), {amount})
+            VALUES ('{PROCEDURE_IDS[proc_name]}'::uuid, '{MATERIAL_IDS[mat_name]}'::uuid, {amount})
         """)
 
     # Definir estoque inicial dos materiais no laboratório principal
@@ -254,7 +254,7 @@ def upgrade() -> None:
     for mat_name, stock in material_stocks.items():
         op.execute(f"""
             INSERT INTO material_balances (material_id, laboratory_id, current_stock, reserved_stock, last_updated)
-            VALUES (HEXTORAW('{MATERIAL_IDS[mat_name].hex}'), HEXTORAW('{DEFAULT_LAB_ID.hex}'), {stock}, 0, TIMESTAMP '{now}')
+            VALUES ('{MATERIAL_IDS[mat_name]}'::uuid, '{DEFAULT_LAB_ID}'::uuid, {stock}, 0, '{now}'::timestamp)
         """)
 
     # Estoque reduzido para laboratório secundário
@@ -281,7 +281,7 @@ def upgrade() -> None:
     for mat_name, stock in secondary_materials.items():
         op.execute(f"""
             INSERT INTO material_balances (material_id, laboratory_id, current_stock, reserved_stock, last_updated)
-            VALUES (HEXTORAW('{MATERIAL_IDS[mat_name].hex}'), HEXTORAW('{SECONDARY_LAB_ID.hex}'), {stock}, 0, TIMESTAMP '{now}')
+            VALUES ('{MATERIAL_IDS[mat_name]}'::uuid, '{SECONDARY_LAB_ID}'::uuid, {stock}, 0, '{now}'::timestamp)
         """)
 
 

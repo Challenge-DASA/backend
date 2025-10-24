@@ -1,12 +1,16 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import AsyncAdaptedQueuePool
 from application.config import get_config
 
 config = get_config()
 
 engine = create_async_engine(
     config.DATABASE_URL(),
-    poolclass=NullPool,
+    poolclass=AsyncAdaptedQueuePool,
+    pool_size=20,
+    max_overflow=10,
+    pool_pre_ping=True,
+    pool_recycle=3600,
     future=True,
     echo=config.DEBUG
 )
