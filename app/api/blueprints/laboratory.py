@@ -1,3 +1,5 @@
+import random
+
 from quart import Blueprint, jsonify
 from quart_schema import tag_blueprint
 
@@ -44,3 +46,24 @@ async def withdraw(laboratory_id: str, procedure_id: str):
         )
         result = await container.withdraw_transaction_use_case.execute(context, input_data)
         return jsonify(result.model_dump() if hasattr(result, 'model_dump') else result)
+
+
+@laboratory_bp.get("/monitoring")
+async def get_monitoring():
+    temperature_value = round(random.uniform(20.0, 25.0), 1)
+
+    humidity_value = random.randint(40, 60)
+
+    return jsonify({
+        "temperature": {
+            "value": temperature_value,
+            "unit": "°C",
+            "status": "Normal"
+        },
+        "humidity": {
+            "value": humidity_value,
+            "unit": "%",
+            "status": "Normal"
+        },
+        "operationalStatus": "Operacional"
+    })
