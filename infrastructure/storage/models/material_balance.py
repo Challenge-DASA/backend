@@ -13,4 +13,4 @@ class MaterialBalanceModel(Base):
     laboratory_id = Column(UUID(as_uuid=True), primary_key=True)
     current_stock = Column(Integer, nullable=False, default=0)
     reserved_stock = Column(Integer, nullable=False, default=0)
-    last_updated = Column(DateTime, default=datetime.datetime.now(datetime.UTC), nullable=False)
+    last_updated = Column(DateTime(timezone=True), default=datetime.datetime.now(datetime.UTC), nullable=False)

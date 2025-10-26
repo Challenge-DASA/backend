@@ -2,9 +2,7 @@ from quart import Blueprint, jsonify
 from quart_schema import tag_blueprint
 
 from application.dto.input.transaction import WithdrawTransactionInput
-from application.dto.output.procedure import ListProceduresOutput
-from application.dto.output.transaction import WithdrawTransactionOutput
-from application.usecases.list_laboratory_balance import ListLaboratoryBalanceOutput, ListLaboratoryBalanceInput
+from application.usecases.list_laboratory_balance import ListLaboratoryBalanceInput
 from application.usecases.list_procedures import ListProceduresInput
 from application.middleware.context import get_context
 from application.container import container

@@ -9,10 +9,10 @@ Base = declarative_base()
 class BaseModel(Base):
     __abstract__ = True
 
-    created_at = Column(DateTime, default=datetime.datetime.now(datetime.UTC), nullable=False)
-    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.UTC), onupdate=datetime.datetime.now(datetime.UTC), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.datetime.now(datetime.UTC), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.datetime.now(datetime.UTC), onupdate=datetime.datetime.now(datetime.UTC), nullable=False)
 
 
 class SoftDeleteMixin:
     is_deleted = Column(Boolean, default=False, nullable=False)
-    deleted_at = Column(DateTime, nullable=True)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)

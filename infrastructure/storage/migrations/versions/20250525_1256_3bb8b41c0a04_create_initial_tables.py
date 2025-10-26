@@ -59,27 +59,27 @@ def upgrade() -> None:
         sa.Column('material_id', postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('description', sa.String(1000), nullable=True),
-        sa.Column('created_at', sa.DateTime(), nullable=False),
-        sa.Column('updated_at', sa.DateTime(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),  # ✅ CORRIGIDO
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),  # ✅ CORRIGIDO
         sa.Column('is_deleted', sa.Boolean(), nullable=False, server_default='false'),
-        sa.Column('deleted_at', sa.DateTime(), nullable=True)
+        sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True)  # ✅ CORRIGIDO
     )
 
     op.create_table('procedures',
         sa.Column('procedure_id', postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('description', sa.String(1000), nullable=True),
-        sa.Column('created_at', sa.DateTime(), nullable=False),
-        sa.Column('updated_at', sa.DateTime(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),  # ✅ CORRIGIDO
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),  # ✅ CORRIGIDO
         sa.Column('is_deleted', sa.Boolean(), nullable=False, server_default='false'),
-        sa.Column('deleted_at', sa.DateTime(), nullable=True)
+        sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True)  # ✅ CORRIGIDO
     )
 
     op.create_table('laboratory_procedures',
         sa.Column('laboratory_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('procedure_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('slot', sa.Integer(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),  # ✅ CORRIGIDO
         sa.PrimaryKeyConstraint('laboratory_id', 'procedure_id'),
         sa.ForeignKeyConstraint(['procedure_id'], ['procedures.procedure_id'])
     )
@@ -98,7 +98,7 @@ def upgrade() -> None:
         sa.Column('laboratory_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('current_stock', sa.Integer(), nullable=False, server_default='0'),
         sa.Column('reserved_stock', sa.Integer(), nullable=False, server_default='0'),
-        sa.Column('last_updated', sa.DateTime(), nullable=False),
+        sa.Column('last_updated', sa.DateTime(timezone=True), nullable=False),  # ✅ CORRIGIDO
         sa.PrimaryKeyConstraint('material_id', 'laboratory_id'),
         sa.ForeignKeyConstraint(['material_id'], ['materials.material_id'])
     )
@@ -110,9 +110,9 @@ def upgrade() -> None:
         sa.Column('laboratory_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('procedure_id', postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(), nullable=False),
-        sa.Column('authorized_at', sa.DateTime(), nullable=True),
-        sa.Column('completed_at', sa.DateTime(), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),  # ✅ CORRIGIDO
+        sa.Column('authorized_at', sa.DateTime(timezone=True), nullable=True),  # ✅ CORRIGIDO
+        sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True),  # ✅ CORRIGIDO
         sa.ForeignKeyConstraint(['procedure_id'], ['procedures.procedure_id'])
     )
 
@@ -155,7 +155,7 @@ def upgrade() -> None:
     for name, description in materials_data:
         op.execute(f"""
             INSERT INTO materials (material_id, name, description, created_at, updated_at)
-            VALUES ('{MATERIAL_IDS[name]}'::uuid, '{name}', '{description}', '{now}'::timestamp, '{now}'::timestamp)
+            VALUES ('{MATERIAL_IDS[name]}'::uuid, '{name}', '{description}', '{now}'::timestamptz, '{now}'::timestamptz)
         """)
 
     # Inserir procedures (kits)
@@ -169,7 +169,7 @@ def upgrade() -> None:
     for name, description in procedures_data:
         op.execute(f"""
             INSERT INTO procedures (procedure_id, name, description, created_at, updated_at)
-            VALUES ('{PROCEDURE_IDS[name]}'::uuid, '{name}', '{description}', '{now}'::timestamp, '{now}'::timestamp)
+            VALUES ('{PROCEDURE_IDS[name]}'::uuid, '{name}', '{description}', '{now}'::timestamptz, '{now}'::timestamptz)
         """)
 
     # Definir slots para cada kit no laboratório principal
@@ -183,14 +183,14 @@ def upgrade() -> None:
     for proc_name in PROCEDURE_IDS.keys():
         op.execute(f"""
             INSERT INTO laboratory_procedures (laboratory_id, procedure_id, slot, created_at)
-            VALUES ('{DEFAULT_LAB_ID}'::uuid, '{PROCEDURE_IDS[proc_name]}'::uuid, {slots[proc_name]}, '{now}'::timestamp)
+            VALUES ('{DEFAULT_LAB_ID}'::uuid, '{PROCEDURE_IDS[proc_name]}'::uuid, {slots[proc_name]}, '{now}'::timestamptz)
         """)
 
     # Definir slots para o laboratório secundário (todos os kits disponíveis)
     for proc_name in PROCEDURE_IDS.keys():
         op.execute(f"""
             INSERT INTO laboratory_procedures (laboratory_id, procedure_id, slot, created_at)
-            VALUES ('{SECONDARY_LAB_ID}'::uuid, '{PROCEDURE_IDS[proc_name]}'::uuid, {slots[proc_name]}, '{now}'::timestamp)
+            VALUES ('{SECONDARY_LAB_ID}'::uuid, '{PROCEDURE_IDS[proc_name]}'::uuid, {slots[proc_name]}, '{now}'::timestamptz)
         """)
 
     # Definir uso de materiais por procedure
@@ -199,22 +199,22 @@ def upgrade() -> None:
         ('Punção venosa simples', 'Luvas descartáveis', 1),
         ('Punção venosa simples', 'Gaze estéril', 1),
         ('Punção venosa simples', 'Seringa 5ml', 1),
-        ('Punção venosa simples', 'Agulha 25x7', 1),  # Opção padrão (ou 25x8)
+        ('Punção venosa simples', 'Agulha 25x7', 1),
         ('Punção venosa simples', 'Álcool 70% sachê', 1),
 
         # Punção venosa com scalp
         ('Punção venosa com scalp', 'Luvas descartáveis', 1),
         ('Punção venosa com scalp', 'Gaze estéril', 1),
-        ('Punção venosa com scalp', 'Scalp nº 21', 1),  # Opção padrão (ou nº 23)
+        ('Punção venosa com scalp', 'Scalp nº 21', 1),
         ('Punção venosa com scalp', 'Seringa 5ml', 1),
         ('Punção venosa com scalp', 'Álcool 70% sachê', 1),
 
         # Cateter venoso periférico
         ('Cateter venoso periférico', 'Luvas descartáveis', 1),
         ('Cateter venoso periférico', 'Gaze estéril', 1),
-        ('Cateter venoso periférico', 'Cateter venoso periférico nº 20', 1),  # Opção padrão (ou nº 22)
+        ('Cateter venoso periférico', 'Cateter venoso periférico nº 20', 1),
         ('Cateter venoso periférico', 'Seringa com solução salina', 1),
-        ('Cateter venoso periférico', 'Curativo transparente', 1),  # Opção padrão (ou micropore)
+        ('Cateter venoso periférico', 'Curativo transparente', 1),
 
         # Curativo simples
         ('Curativo simples', 'Luvas descartáveis', 1),
@@ -232,12 +232,12 @@ def upgrade() -> None:
 
     # Definir estoque inicial dos materiais no laboratório principal
     material_stocks = {
-        'Luvas descartáveis': 1000,     # Muito usado
-        'Gaze estéril': 500,            # Muito usado
+        'Luvas descartáveis': 1000,
+        'Gaze estéril': 500,
         'Seringa 5ml': 300,
         'Agulha 25x7': 400,
         'Agulha 25x8': 300,
-        'Álcool 70% sachê': 800,        # Muito usado
+        'Álcool 70% sachê': 800,
 
         'Scalp nº 21': 100,
         'Scalp nº 23': 80,
@@ -246,7 +246,7 @@ def upgrade() -> None:
         'Cateter venoso periférico nº 22': 40,
         'Seringa com solução salina': 100,
         'Curativo transparente': 80,
-        'Micropore': 200,               # Muito usado
+        'Micropore': 200,
 
         'Soro fisiológico pequeno': 100,
     }
@@ -254,7 +254,7 @@ def upgrade() -> None:
     for mat_name, stock in material_stocks.items():
         op.execute(f"""
             INSERT INTO material_balances (material_id, laboratory_id, current_stock, reserved_stock, last_updated)
-            VALUES ('{MATERIAL_IDS[mat_name]}'::uuid, '{DEFAULT_LAB_ID}'::uuid, {stock}, 0, '{now}'::timestamp)
+            VALUES ('{MATERIAL_IDS[mat_name]}'::uuid, '{DEFAULT_LAB_ID}'::uuid, {stock}, 0, '{now}'::timestamptz)
         """)
 
     # Estoque reduzido para laboratório secundário
@@ -281,7 +281,7 @@ def upgrade() -> None:
     for mat_name, stock in secondary_materials.items():
         op.execute(f"""
             INSERT INTO material_balances (material_id, laboratory_id, current_stock, reserved_stock, last_updated)
-            VALUES ('{MATERIAL_IDS[mat_name]}'::uuid, '{SECONDARY_LAB_ID}'::uuid, {stock}, 0, '{now}'::timestamp)
+            VALUES ('{MATERIAL_IDS[mat_name]}'::uuid, '{SECONDARY_LAB_ID}'::uuid, {stock}, 0, '{now}'::timestamptz)
         """)
 
 

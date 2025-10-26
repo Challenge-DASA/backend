@@ -1,8 +1,10 @@
+import datetime
 from abc import abstractmethod, ABC
-from typing import Optional
+from typing import Optional, List
 
 from domain.entities.transaction import Transaction
-from domain.value_objects.ids import TransactionId
+from domain.value_objects.enums import TransactionStatus, TransactionType
+from domain.value_objects.ids import TransactionId, LaboratoryId, UserId
 
 
 class TransactionRepository(ABC):
@@ -16,5 +18,13 @@ class TransactionRepository(ABC):
         pass
 
     @abstractmethod
-    async def exists(self, transaction_id: TransactionId) -> bool:
+    async def find_with_filters(
+            self,
+            laboratory_id: Optional[LaboratoryId] = None,
+            user_id: Optional[UserId] = None,
+            transaction_type: Optional[TransactionType] = None,
+            status: Optional[TransactionStatus] = None,
+            start_date: Optional[datetime.datetime] = None,
+            end_date: Optional[datetime.datetime] = None
+    ) -> List[Transaction]:
         pass

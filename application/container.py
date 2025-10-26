@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from application.usecases.list_laboratory_balance import ListLaboratoryBalanceUseCase
 from application.usecases.list_procedure_materials import ListProcedureMaterialsUseCase
 from application.usecases.withdraw import WithdrawTransactionUseCase
+from application.usecases.list_transactions import ListTransactionsUseCase
 from infrastructure.storage.postgres.database import async_session_factory
 from infrastructure.storage.repositories.material_balance_repository import MaterialBalanceRepositoryImpl
 from infrastructure.storage.repositories.material_repository import MaterialRepositoryImpl
@@ -23,7 +24,7 @@ class Container:
         self._list_procedure_materials_use_case = None
         self._list_laboratory_balance_use_case = None
         self._withdraw_transaction_use_case = None
-
+        self._list_transactions_use_case = None
 
     @asynccontextmanager
     async def get_session(self):
@@ -34,7 +35,14 @@ class Container:
             finally:
                 self._session = None
                 self._procedure_repository = None
+                self._material_repository = None
+                self._material_balance_repository = None
+                self._transaction_repository = None
                 self._list_procedures_use_case = None
+                self._list_procedure_materials_use_case = None
+                self._list_laboratory_balance_use_case = None
+                self._withdraw_transaction_use_case = None
+                self._list_transactions_use_case = None
 
     @property
     def procedure_repository(self) -> ProcedureRepositoryImpl:
@@ -76,14 +84,20 @@ class Container:
 
     @property
     def list_procedure_materials_use_case(self) -> ListProcedureMaterialsUseCase:
-        if self._list_procedures_use_case is None:
-            self._list_procedures_use_case = ListProcedureMaterialsUseCase(self.procedure_repository, self.material_repository)
-        return self._list_procedures_use_case
+        if self._list_procedure_materials_use_case is None:
+            self._list_procedure_materials_use_case = ListProcedureMaterialsUseCase(
+                self.procedure_repository,
+                self.material_repository
+            )
+        return self._list_procedure_materials_use_case
 
     @property
     def list_laboratory_balance_use_case(self):
         if self._list_laboratory_balance_use_case is None:
-            self._list_laboratory_balance_use_case = ListLaboratoryBalanceUseCase(self.material_balance_repository, self.material_repository)
+            self._list_laboratory_balance_use_case = ListLaboratoryBalanceUseCase(
+                self.material_balance_repository,
+                self.material_repository
+            )
         return self._list_laboratory_balance_use_case
 
     @property
@@ -96,5 +110,16 @@ class Container:
                 self.material_repository
             )
         return self._withdraw_transaction_use_case
+
+    @property
+    def list_transactions_use_case(self) -> ListTransactionsUseCase:
+        if self._list_transactions_use_case is None:
+            self._list_transactions_use_case = ListTransactionsUseCase(
+                self.transaction_repository,
+                self.procedure_repository,
+                self.material_repository
+            )
+        return self._list_transactions_use_case
+
 
 container = Container()

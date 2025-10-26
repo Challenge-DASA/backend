@@ -1,11 +1,13 @@
-from typing import Optional
+import datetime
+from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
 
 from domain.entities.transaction import Transaction
 from domain.repositories.transaction import TransactionRepository
-from domain.value_objects.ids import TransactionId
+from domain.value_objects.ids import TransactionId, LaboratoryId, UserId
+from domain.value_objects.enums import TransactionType, TransactionStatus
 from infrastructure.storage.mappers.transaction import TransactionMapper, TransactionItemMapper
 from infrastructure.storage.models.transaction import TransactionModel
 
@@ -52,3 +54,58 @@ class TransactionRepositoryImpl(TransactionRepository):
 
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none() is not None
+
+    async def find_with_filters(
+        self,
+        laboratory_id: Optional[LaboratoryId] = None,
+        user_id: Optional[UserId] = None,
+        transaction_type: Optional[TransactionType] = None,
+        status: Optional[TransactionStatus] = None,
+        start_date: Optional[datetime.datetime] = None,
+        end_date: Optional[datetime.datetime] = None
+    ) -> List[Transaction]:
+        """
+        Busca transações com filtros opcionais.
+        Todos os filtros são aplicados como AND.
+        """
+        # Monta a query base com eager loading dos items
+        stmt = (
+            select(TransactionModel)
+            .options(selectinload(TransactionModel.items))
+        )
+
+        # Lista de condições para o WHERE
+        conditions = []
+
+        # Aplica filtros se fornecidos
+        if laboratory_id:
+            conditions.append(TransactionModel.laboratory_id == laboratory_id.value)
+
+        if user_id:
+            conditions.append(TransactionModel.user_id == user_id.value)
+
+        if transaction_type:
+            conditions.append(TransactionModel.transaction_type == transaction_type.value)
+
+        if status:
+            conditions.append(TransactionModel.status == status.value)
+
+        if start_date:
+            conditions.append(TransactionModel.created_at >= start_date)
+
+        if end_date:
+            conditions.append(TransactionModel.created_at <= end_date)
+
+        # Aplica todas as condições com AND
+        if conditions:
+            stmt = stmt.where(and_(*conditions))
+
+        # Ordena por data de criação (mais recentes primeiro)
+        stmt = stmt.order_by(TransactionModel.created_at.desc())
+
+        # Executa query
+        result = await self.session.execute(stmt)
+        models = result.scalars().all()
+
+        # Converte para domínio
+        return [TransactionMapper.to_domain(model) for model in models]

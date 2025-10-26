@@ -17,9 +17,9 @@ class TransactionModel(Base):
     laboratory_id = Column(UUID(as_uuid=True), nullable=False)
     user_id = Column(UUID(as_uuid=True), nullable=False)
     procedure_id = Column(UUID(as_uuid=True), nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.now(datetime.UTC), nullable=False)
-    authorized_at = Column(DateTime, nullable=True)
-    completed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.datetime.now(datetime.UTC), nullable=False)
+    authorized_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
 
     items = relationship("TransactionItemModel", back_populates="transaction")
 

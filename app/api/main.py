@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 config = get_config()
 app = Quart(__name__)
 app.config.from_object(config)
+app.json.ensure_ascii = False
 
 device_service = DeviceService()
 temperature_service = TemperatureService()
