@@ -2,6 +2,7 @@ import asyncio
 import logging
 from quart import Quart
 from sqlalchemy import text
+from quart_cors import cors
 
 from application.config import get_config
 from app.api.error_handlers import register_error_handlers
@@ -18,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 config = get_config()
 app = Quart(__name__)
+app = cors(app, allow_origin="*")
+
 app.config.from_object(config)
 app.json.ensure_ascii = False
 
