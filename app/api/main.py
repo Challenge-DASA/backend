@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 config = get_config()
 app = Quart(__name__)
-app = cors(app, allow_origin="*")
 
 app.config.from_object(config)
 app.json.ensure_ascii = False
@@ -35,6 +34,7 @@ context_middleware = ContextMiddleware(app)
 register_error_handlers(app)
 register_blueprints(app)
 
+app = cors(app, allow_origin="*")
 
 @app.before_serving
 async def startup():
